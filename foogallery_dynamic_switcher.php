@@ -73,7 +73,12 @@ add_action('wp_ajax_fg_manage_preset', function() {
     
     $post_id = intval($_POST['post_id']);
     $preset_id = sanitize_text_field($_POST['preset']);
-    $sub_action = sanitize_text_field($_POST['sub_action']); // Punto 2: Sanificato
+    $sub_action = sanitize_text_field($_POST['sub_action']);
+
+    $allowed_presets = ['justified', 'responsive', 'masonry'];
+    if (!in_array($preset_id, $allowed_presets, true)) {
+        wp_send_json_error('Preset non valido.');
+    }
 
     if (!current_user_can('edit_post', $post_id)) {
         wp_send_json_error('Permessi insufficienti.');
@@ -89,8 +94,8 @@ add_action('wp_ajax_fg_manage_preset', function() {
 
         if (!$current_template) wp_send_json_error('Nessun dato da salvare.');
 
-        update_option("fg_preset_template_$preset_id", $current_template);
-        update_option("fg_preset_data_$preset_id", $current_settings);
+        update_option("fg_preset_template_$preset_id", $current_template, false);
+        update_option("fg_preset_data_$preset_id", $current_settings, false);
         wp_send_json_success();
 
     } elseif ($sub_action === 'apply') {
